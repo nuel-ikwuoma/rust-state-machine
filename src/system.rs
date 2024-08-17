@@ -37,12 +37,13 @@ impl<T: Config> Pallet<T> {
 
 	// Increment the nonce of an account. This helps us keep track of how many transactions each
 	// account has made.
-	pub fn inc_nonce(&mut self, who: T::AccountID) {
-		let prev_nonce = *self.nonce.get(&who).unwrap_or(&T::Nonce::one());
+	pub fn inc_nonce(&mut self, who: &T::AccountID) {
+		let prev_nonce = *self.nonce.get(&who).unwrap_or(&T::Nonce::zero());
 		let new_nonce = prev_nonce + T::Nonce::one();
-		self.nonce.insert(who, new_nonce);
+		self.nonce.insert(who.clone(), new_nonce);
 	}
 
+	#[allow(unused)]
 	pub fn get_nonce(&self, who: T::AccountID) -> T::Nonce {
 		*self.nonce.get(&who).unwrap_or(&T::Nonce::zero())
 	}
@@ -86,7 +87,7 @@ mod test {
 	fn account_nonce() {
 		let mut new_system = super::Pallet::<TestConfig>::new();
 
-		new_system.inc_nonce("alice".to_string());
+		new_system.inc_nonce(&"alice".to_string());
 
 		assert_eq!(new_system.get_nonce("alice".to_string()), 1);
 		assert_eq!(new_system.get_nonce("bob".to_string()), 0);
@@ -97,7 +98,7 @@ mod test {
 		let mut new_system = super::Pallet::<TestConfig>::new();
 		let alice = String::from("alice");
 		new_system.inc_block_number();
-		new_system.inc_nonce(alice.clone());
+		new_system.inc_nonce(&alice);
 
 		assert_eq!(new_system.block_number(), 1);
 		assert_eq!(new_system.get_nonce(alice), 1);
